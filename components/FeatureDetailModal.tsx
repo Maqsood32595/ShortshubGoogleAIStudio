@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { ComputedFeature, Route } from '../types';
-import { XIcon, LinkIcon, ShieldCheckIcon, ChartBarIcon, CogIcon, HeartIcon, ExclamationTriangleIcon } from './Icons';
+import { Feature, Route } from '../types';
+import { XIcon, LinkIcon, ShieldCheckIcon, ChartBarIcon, CogIcon, HeartIcon } from './Icons';
 
 interface FeatureDetailModalProps {
-  feature: ComputedFeature | null;
+  feature: Feature | null;
   onClose: () => void;
 }
 
@@ -36,32 +36,18 @@ const FeatureDetailModal: React.FC<FeatureDetailModalProps> = ({ feature, onClos
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-2xl font-bold text-white">{feature.name}</h2>
-                    <p className="text-sm text-gray-400 mt-1">{feature.description}</p>
+                    <p className="text-sm text-gray-400">{feature.description}</p>
                 </div>
-                <button onClick={onClose} className="text-gray-400 hover:text-white bg-gray-700 p-2 rounded-full hover:bg-gray-600 transition-colors">
-                    <XIcon className="h-5 w-5" />
+                <button onClick={onClose} className="text-gray-400 hover:text-white">
+                    <XIcon className="h-6 w-6" />
                 </button>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-mono">
-                {feature.status === 'active' && (
-                    <span className="px-2 py-1 rounded-md bg-green-500/20 text-green-300 border border-green-500/30">
-                        ACTIVE
-                    </span>
-                )}
-                {feature.status === 'disabled-manual' && (
-                    <span className="px-2 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
-                        DISABLED (MANUAL)
-                    </span>
-                )}
-                {feature.status === 'disabled-dependency' && (
-                    <span className="px-2 py-1 rounded-md bg-orange-500/20 text-orange-300 border border-orange-500/30 flex items-center">
-                        <ExclamationTriangleIcon className="w-3 h-3 mr-1"/>
-                        BLOCKED BY {feature.blockedBy?.join(', ')}
-                    </span>
-                )}
-                
-                <span className="bg-gray-700 px-2 py-1 rounded-md">v{feature.version}</span>
-                {feature.fallback && <span className="bg-gray-700 px-2 py-1 rounded-md text-cyan-300">Fallback: {feature.fallback}</span>}
+            <div className="mt-4 flex items-center space-x-4 text-xs font-mono">
+                <span className={`px-2 py-1 rounded-full ${feature.enabled ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                    {feature.enabled ? 'ENABLED' : 'DISABLED'}
+                </span>
+                <span>Version: {feature.version}</span>
+                {feature.fallback && <span>Fallback: {feature.fallback}</span>}
             </div>
         </div>
 
@@ -87,19 +73,19 @@ const FeatureDetailModal: React.FC<FeatureDetailModalProps> = ({ feature, onClos
 
             {Object.keys(feature.config).length > 0 && (
                 <DetailSection title="Configuration" icon={<CogIcon className="w-5 h-5 text-cyan-400" />}>
-                    <pre className="text-gray-300 text-xs overflow-x-auto p-2 bg-black/30 rounded border border-gray-700">{JSON.stringify(feature.config, null, 2)}</pre>
+                    <pre className="text-gray-300 text-xs overflow-x-auto p-0">{JSON.stringify(feature.config, null, 2)}</pre>
                 </DetailSection>
             )}
 
             <DetailSection title="Health Check" icon={<HeartIcon className="w-5 h-5 text-cyan-400" />}>
-                <pre className="text-gray-300 text-xs overflow-x-auto p-2 bg-black/30 rounded border border-gray-700">{JSON.stringify(feature.health, null, 2)}</pre>
+                <pre className="text-gray-300 text-xs overflow-x-auto p-0">{JSON.stringify(feature.health, null, 2)}</pre>
             </DetailSection>
 
             {feature.dependencies.requires.length > 0 && (
                 <DetailSection title="Dependencies" icon={<LinkIcon className="w-5 h-5 text-cyan-400" />}>
                     <div className="flex flex-wrap gap-2">
                         {feature.dependencies.requires.map(dep => (
-                            <span key={dep} className="font-mono bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs border border-gray-600">{dep}</span>
+                            <span key={dep} className="font-mono bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">{dep}</span>
                         ))}
                     </div>
                 </DetailSection>
@@ -107,7 +93,7 @@ const FeatureDetailModal: React.FC<FeatureDetailModalProps> = ({ feature, onClos
 
             {feature.security?.rateLimit && (
                  <DetailSection title="Security" icon={<ShieldCheckIcon className="w-5 h-5 text-cyan-400" />}>
-                     <pre className="text-gray-300 text-xs overflow-x-auto p-2 bg-black/30 rounded border border-gray-700">{JSON.stringify(feature.security, null, 2)}</pre>
+                     <pre className="text-gray-300 text-xs overflow-x-auto p-0">{JSON.stringify(feature.security, null, 2)}</pre>
                  </DetailSection>
             )}
 
@@ -115,7 +101,7 @@ const FeatureDetailModal: React.FC<FeatureDetailModalProps> = ({ feature, onClos
                 <DetailSection title="Monitoring" icon={<ChartBarIcon className="w-5 h-5 text-cyan-400" />}>
                     <div className="flex flex-wrap gap-2">
                         {feature.monitoring.metrics.map(metric => (
-                            <span key={metric} className="font-mono bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs border border-gray-600">{metric}</span>
+                            <span key={metric} className="font-mono bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">{metric}</span>
                         ))}
                     </div>
                 </DetailSection>

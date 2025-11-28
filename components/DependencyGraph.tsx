@@ -1,16 +1,16 @@
 
 import React, { useEffect, useRef, useMemo } from 'react';
 import * as d3 from 'd3';
-import { ComputedFeature } from '../types';
+import { Feature } from '../types';
 
 interface DependencyGraphProps {
-  features: ComputedFeature[];
-  onNodeClick: (feature: ComputedFeature) => void;
+  features: Feature[];
+  onNodeClick: (feature: Feature) => void;
 }
 
 interface Node extends d3.SimulationNodeDatum {
   id: string;
-  status: 'active' | 'disabled-manual' | 'disabled-dependency';
+  enabled: boolean;
 }
 
 interface Link extends d3.SimulationLinkDatum<Node> {
@@ -22,7 +22,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ features, onNodeClick
   const ref = useRef<SVGSVGElement>(null);
 
   const { nodes, links } = useMemo(() => {
-    const nodes: Node[] = features.map(f => ({ id: f.id, status: f.status }));
+    const nodes: Node[] = features.map(f => ({ id: f.id, enabled: f.enabled }));
     const links: Link[] = [];
     features.forEach(feature => {
       feature.dependencies.requires.forEach(dep => {
@@ -49,22 +49,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ features, onNodeClick
       .force("link", d3.forceLink(links).id((d: any) => d.id).distance(100))
       .force("charge", d3.forceManyBody().strength(-300))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collide", d3.forceCollide().radius(40));
-
-    // Arrow markers
-    svg.append("defs").selectAll("marker")
-      .data(["end"])
-      .enter().append("marker")
-      .attr("id", "arrow")
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 24)
-      .attr("refY", 0)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("d", "M0,-5L10,0L0,5")
-      .attr("fill", "#4b5563");
+      .force("collide", d3.forceCollide().radius(30));
 
     const link = svg.append("g")
       .attr("stroke", "#4b5563") // gray-600
@@ -72,8 +57,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ features, onNodeClick
       .selectAll("line")
       .data(links)
       .join("line")
-      .attr("stroke-width", 1.5)
-      .attr("marker-end", "url(#arrow)");
+      .attr("stroke-width", 1.5);
 
     const node = svg.append("g")
       .selectAll("g")
@@ -85,32 +69,21 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ features, onNodeClick
           if(feature) onNodeClick(feature);
       });
 
-    // Status color logic
-    const getColor = (status: string) => {
-        switch(status) {
-            case 'active': return '#22d3ee'; // cyan-400
-            case 'disabled-manual': return '#f87171'; // red-400
-            case 'disabled-dependency': return '#fb923c'; // orange-400
-            default: return '#9ca3af';
-        }
-    };
-
     node.append("circle")
-      .attr("r", 14)
+      .attr("r", 12)
       .attr("stroke", "#1f2937") // gray-800
-      .attr("stroke-width", 3)
-      .attr("fill", d => getColor(d.status))
+      .attr("stroke-width", 2)
+      .attr("fill", d => d.enabled ? "#22d3ee" : "#f87171") // cyan-400 or red-400
       .style('cursor', 'pointer');
       
     node.append("text")
-      .attr("x", 20)
+      .attr("x", 18)
       .attr("y", "0.31em")
       .text(d => d.id)
       .attr("fill", "#d1d5db") // gray-300
       .style("font-size", "12px")
       .style("font-family", "monospace")
-      .style("pointer-events", "none")
-      .style("text-shadow", "0 1px 2px rgba(0,0,0,0.8)");
+      .style("pointer-events", "none");
 
     simulation.on("tick", () => {
       link
@@ -148,7 +121,7 @@ const DependencyGraph: React.FC<DependencyGraphProps> = ({ features, onNodeClick
       .on("end", dragended);
   }
 
-  return <svg ref={ref} className="w-full h-[400px] bg-gray-900/50 rounded-lg"></svg>;
+  return <svg ref={ref} className="w-full h-[400px]"></svg>;
 };
 
 export default DependencyGraph;
