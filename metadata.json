@@ -1,0 +1,5 @@
+{
+  "name": "ShortsHub Feature Dashboard",
+  "description": "A dashboard to visualize and manage feature flags for the ShortsHub application, providing insights into dependencies, configurations, and health status.",
+  "requestFramePermissions": []
+}
